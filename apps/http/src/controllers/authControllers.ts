@@ -1,3 +1,5 @@
+import client from "@prisma/client";
+
 export const singUpController = (req, res) => {
   const { username, email, password } = req.body;
 
