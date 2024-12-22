@@ -1,8 +1,7 @@
-import client from "./prisma/prisma";
 import express from "express";
+import authRoutes from "./routes/authRoute";
 
 const app = express();
+app.use(express.json());
 
-const signup = app.post("/", (req, res) => {
-  const { fullname, password } = req.body;
-});
+app.use("/api/v1", authRoutes);
