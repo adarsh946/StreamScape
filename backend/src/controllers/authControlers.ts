@@ -1,7 +1,8 @@
 import { signInSchema, signupSchema } from "../types";
 import bcrypt from "bcryptjs";
-import client from "../prisma/prisma";
+import { prisma } from "../../prisma/prisma";
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 export const signUpController = async (req: Request, res: Response) => {
   const parsedData = signupSchema.safeParse(req.body);
@@ -15,7 +16,19 @@ export const signUpController = async (req: Request, res: Response) => {
   const hashedPassword = await bcrypt.hash(parsedData.data.password, 10);
 
   try {
-    const user = await client.user.create({
+    const userExists = await prisma.user.findFirst({
+      where: {
+        email: parsedData.data.email,
+      },
+    });
+
+    if (userExists) {
+      return res.status(401).json({
+        message: "user already exists!",
+      });
+    }
+
+    const user = await prisma.user.create({
       data: {
         fullname: parsedData.data.fullname,
         email: parsedData.data.email,
@@ -23,7 +36,13 @@ export const signUpController = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(201).json({
+    if (!user) {
+      return res.status(401).json({
+        message: "Registration Unsuccessfull",
+      });
+    }
+
+    return res.status(201).json({
       userId: user.id,
     });
   } catch (error) {
@@ -43,7 +62,7 @@ export const signInController = async (req: Request, res: Response) => {
   }
 
   try {
-    const user = await client.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         email: parsedData.data.email,
       },
@@ -65,6 +84,18 @@ export const signInController = async (req: Request, res: Response) => {
         message: "password is Incorrect",
       });
     }
+
+    const token = jwt.sign(user.password, process.env.JWT_SECRET!);
+    if (!token) {
+      return res.status(403).json({
+        message: "There is problem to create token",
+      });
+    }
+
+    return res.json({
+      token,
+      userId: user.id,
+    });
   } catch (error) {
     res.status(401).json({
       message: "Unauthorised Request",
