@@ -23,4 +23,6 @@ model User {
 model Session {
   id        String  @unique  @default(cuid())
   title     String
+  status    String 
+  startTime DateTime?  @default(now())
 }

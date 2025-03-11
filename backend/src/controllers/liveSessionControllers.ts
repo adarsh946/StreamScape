@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { createLiveSessionSchema } from "../types";
-import { prisma } from "../../prisma/prisma";
+import { prisma } from "../prisma";
 
 const randomIdGenerator = () => {
   let alphabet = [
@@ -47,15 +47,17 @@ export const createLiveSession = async (req: Request, res: any) => {
     });
   }
 
+  console.log("111111111");
+
   try {
     let liveSessionId;
     let isExists = true;
 
-    while (isExists) {
-      liveSessionId =
-        `${randomIdGenerator()}-${randomIdGenerator()}-${randomIdGenerator()}` as string;
-      await prisma.session.findUnique({ where: { id: liveSessionId } });
-    }
+    // while (isExists) {
+    //   liveSessionId =
+    //     `${randomIdGenerator()}-${randomIdGenerator()}-${randomIdGenerator()}` as string;
+    //   await prisma.session.findUnique({ where: { id: liveSessionId } });
+    // }
 
     const session = await prisma.session.create({
       data: {
@@ -67,5 +69,14 @@ export const createLiveSession = async (req: Request, res: any) => {
     if (!session) {
       throw new Error("unable to create the session");
     }
-  } catch (error) {}
+    res.status(200).json({
+      sessionId: session.id,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: "server Error",
+    });
+  }
 };
+
+export const allLiveSession = async () => {};
