@@ -4,7 +4,7 @@ import { prisma } from "../../prisma/prisma";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-export const signUpController = async (req: Request, res: Response) => {
+export const signUpController = async (req: Request, res: any) => {
   const parsedData = signupSchema.safeParse(req.body);
   if (!parsedData.success) {
     res.status(401).json({

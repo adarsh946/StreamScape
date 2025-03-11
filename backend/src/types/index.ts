@@ -10,3 +10,7 @@ export const signInSchema = z.object({
   email: z.string().email(),
   password: z.string(),
 });
+
+export const createLiveSessionSchema = z.object({
+  title: z.string(),
+});
