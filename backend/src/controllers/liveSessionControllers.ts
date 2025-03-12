@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
-import { createLiveSessionSchema } from "../types";
+import { createLiveSessionSchema, liveSessionSchema } from "../types";
 import { prisma } from "../prisma";
-import { title } from "process";
 
 const randomIdGenerator = () => {
   let alphabet = [
@@ -97,4 +96,101 @@ export const allLiveSession = async (req: Request, res: any) => {
       starTime: e.startTime,
     }))
   );
+};
+
+export const startSession = async (req: Request, res: any) => {
+  const parsedData = liveSessionSchema.safeParse(req.body);
+  if (!parsedData) {
+    return res.status(401).json({
+      error: "Bad Request",
+    });
+  }
+
+  try {
+    const alreadyExists = await prisma.session.findFirst({
+      where: {
+        id: parsedData.data?.id,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (alreadyExists?.status === "active") {
+      return res.status(403).json({
+        error: "session already started! ",
+      });
+    }
+
+    const startLiveSession = await prisma.session.update({
+      where: {
+        id: parsedData.data?.id,
+      },
+      data: {
+        status: parsedData.data?.status,
+      },
+    });
+
+    if (!startLiveSession) {
+      return res.status(403).json({
+        error: "unauthorised Request!",
+      });
+    }
+
+    return res.json(200).json({
+      message: "Session started Successfully!",
+    });
+  } catch (error) {
+    return res.status(403).json({
+      error: "unauthorised Request!",
+    });
+  }
+};
+
+export const endSession = async (req: Request, res: any) => {
+  const parsedData = liveSessionSchema.safeParse(req.body);
+  if (!parsedData) {
+    return res.status(403).json({
+      error: "Bad request",
+    });
+  }
+  try {
+    const ifExists = await prisma.session.findFirst({
+      where: {
+        id: parsedData.data?.id,
+      },
+      select: {
+        status: true,
+      },
+    });
+
+    if (ifExists?.status === "inactive") {
+      return res.json({
+        error: "session already ended",
+      });
+    }
+
+    const endLiveSession = await prisma.session.update({
+      where: {
+        id: parsedData.data?.id,
+      },
+      data: {
+        status: parsedData.data?.status,
+      },
+    });
+
+    if (!endLiveSession) {
+      return res.status(403).json({
+        error: "server error",
+      });
+    }
+
+    return res.status(200).json({
+      message: "session ended Successfully",
+    });
+  } catch (error) {
+    return res.status(403).json({
+      error: "Unable to end the session",
+    });
+  }
 };

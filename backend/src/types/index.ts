@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { string } from "zod";
 
 export const signupSchema = z.object({
   fullname: z.string(),
@@ -13,4 +13,9 @@ export const signInSchema = z.object({
 
 export const createLiveSessionSchema = z.object({
   title: z.string(),
+});
+
+export const liveSessionSchema = z.object({
+  id: z.string(),
+  status: z.string(),
 });
