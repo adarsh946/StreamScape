@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { createLiveSessionSchema } from "../types";
 import { prisma } from "../prisma";
+import { title } from "process";
 
 const randomIdGenerator = () => {
   let alphabet = [
@@ -63,6 +64,8 @@ export const createLiveSession = async (req: Request, res: any) => {
       data: {
         id: liveSessionId,
         title: parsedData.data?.title!,
+        status: "active",
+        startTime: "",
       },
     });
 
@@ -79,4 +82,19 @@ export const createLiveSession = async (req: Request, res: any) => {
   }
 };
 
-export const allLiveSession = async () => {};
+export const allLiveSession = async (req: Request, res: any) => {
+  const sessions = await prisma.session.findMany();
+  if (!sessions) {
+    return res.status(401).json({
+      error: "sessions not found",
+    });
+  }
+  res.status(200).json(
+    sessions.map((e: any) => ({
+      id: e.id,
+      title: e.title,
+      status: e.status,
+      starTime: e.startTime,
+    }))
+  );
+};
